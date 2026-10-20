@@ -14,6 +14,18 @@ npm test       # 运行测试
 
 网页版不能直接双击 `web/index.html` 打开（浏览器不允许本地文件加载模块代码），要用 `npm run web`。
 
+## 在线试玩
+
+- https://majiang.stormnovalabs.com/ （Cloudflare Worker）
+- https://stormyu324.github.io/simple-majiang/ （GitHub Pages，推送后自动更新）
+
+更新 Cloudflare 上的版本：
+
+```bash
+npx wrangler login   # 第一次需要登录
+npm run deploy       # 生成 dist/ 并部署
+```
+
 ## 规则
 
 - 136 张牌：万、条、筒各 1-9，字牌东南西北中发白，每种 4 张

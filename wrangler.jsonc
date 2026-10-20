@@ -1,0 +1,14 @@
+// Cloudflare Worker 配置：只托管静态文件，绑定自定义域名 majiang.stormnovalabs.com
+{
+  "name": "majiang",
+  // stormnovalabs.com 所在的 Cloudflare 账户
+  "account_id": "d22bdb7bc1755ad305aabca0ccca32be",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist"
+  },
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "majiang.stormnovalabs.com", "custom_domain": true }
+  ]
+}
