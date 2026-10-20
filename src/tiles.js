@@ -36,6 +36,16 @@ export function createWall(random = Math.random) {
   return wall;
 }
 
+// 简写转成牌：m=万 s=条 p=筒 z=字（1-7 为东南西北中发白），例如 '123m55z'
+export function parseTiles(str) {
+  const tiles = [];
+  for (const [, nums, suit] of str.matchAll(/(\d+)([mspz])/g)) {
+    const base = { m: 0, s: 9, p: 18, z: 27 }[suit];
+    for (const n of nums) tiles.push(base + Number(n) - 1);
+  }
+  return tiles;
+}
+
 export function toCounts(tiles) {
   const counts = new Array(TILE_KINDS).fill(0);
   for (const t of tiles) counts[t]++;

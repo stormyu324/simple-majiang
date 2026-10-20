@@ -4,12 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>简单麻将</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 40'><rect x='1' y='1' width='28' height='38' rx='4' fill='%23fbf7ea' stroke='%233f8f6a' stroke-width='2'/><text x='15' y='27' font-size='20' font-weight='bold' text-anchor='middle' fill='%23c62828'>中</text></svg>">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="bar">
     <h1>简单麻将</h1>
-    <button id="restart" class="btn">重新开始</button>
+    <div class="bar-buttons">
+      <button id="tutorial-btn" class="btn">📖 新手教学</button>
+      <button id="hints" class="btn" aria-pressed="false">提示：关</button>
+      <button id="restart" class="btn">重新开始</button>
+    </div>
   </header>
 
   <main class="table">
@@ -31,6 +36,22 @@
       <p class="detail"></p>
       <div class="hand-row"></div>
       <button id="again" class="btn primary">再来一局</button>
+    </div>
+  </div>
+
+  <div id="tutorial" class="overlay" hidden>
+    <div class="dialog tutorial" role="dialog" aria-modal="true" aria-labelledby="tut-title">
+      <div class="tut-top">
+        <span class="tut-progress"></span>
+        <button class="tut-close" data-tut="close" aria-label="关闭教学">✕</button>
+      </div>
+      <div class="tut-track"><div class="tut-bar"></div></div>
+      <h2 id="tut-title"></h2>
+      <div class="tut-body"></div>
+      <div class="tut-nav">
+        <button class="btn light" data-tut="prev">上一步</button>
+        <button class="btn primary" data-tut="next">下一步</button>
+      </div>
     </div>
   </div>
 

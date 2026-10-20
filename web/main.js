@@ -1,6 +1,9 @@
 import { Game } from '../src/game.js';
 import { sortTiles, tileName } from '../src/tiles.js';
+import { waitingTiles } from '../src/rules.js';
+import { chooseDiscard } from '../src/ai.js';
 import { tileHTML, backHTML } from './tile-art.js';
+import { openTutorial } from './tutorial.js';
 
 const $ = (sel) => document.querySelector(sel);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -82,10 +85,19 @@ class WebGame extends Game {
 
 // ---------- 界面状态 ----------
 
+// localStorage 在隐私模式等情况下可能不可用，读写都包一层
+function load(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function save(key, value) {
+  try { localStorage.setItem(key, value); } catch {}
+}
+
 const ui = {
   game: null,
   onDiscard: null, // 等待玩家出牌时的回调
   choice: null, // 等待玩家选择 胡/碰 时的状态
+  hints: load('mj-hints') === 'on', // 是否显示出牌建议和听牌
 };
 
 const SEAT_CLASS = ['bottom', 'right', 'top', 'left'];
@@ -124,13 +136,51 @@ function opponentHTML(game, seat) {
     <div class="discards">${discardsHTML(p)}</div>`;
 }
 
+// 自己能看到的所有明牌：手牌、各家碰出的牌、各家打出的牌
+function visibleTiles(game, hand) {
+  const seen = [...hand];
+  for (const p of game.players) seen.push(...p.melds.flat(), ...p.discards);
+  return seen;
+}
+
+// 提示：轮到出牌时给出建议，平时显示听哪些牌
+function hintFor(game, canClick) {
+  if (!ui.hints || game.revealed) return { text: '', suggest: null };
+  const p = game.players[0];
+  if (canClick) {
+    const suggest = chooseDiscard(p.hand);
+    const after = [...p.hand];
+    after.splice(after.indexOf(suggest), 1);
+    const waits = waitingTiles(after, visibleTiles(game, [...after, suggest]));
+    const text = `💡 建议打 <b>${tileName(suggest)}</b>` +
+      (waits.length ? `，打完就听：<b>${waits.map(tileName).join('、')}</b>` : '');
+    return { text, suggest };
+  }
+  const waits = waitingTiles(p.hand, visibleTiles(game, p.hand));
+  const text = waits.length ? `💡 听牌中！等：<b>${waits.map(tileName).join('、')}</b>` : '💡 还没听牌，继续凑面子';
+  return { text, suggest: null };
+}
+
 function humanHTML(game) {
   const p = game.players[0];
   const rest = [...p.hand];
   if (p.drawn != null) rest.splice(rest.indexOf(p.drawn), 1);
   const canClick = ui.onDiscard != null;
-  const tile = (t) => tileHTML(t, { cls: canClick ? 'clickable' : '', attrs: `data-tile="${t}"` });
-  const drawn = p.drawn != null ? `<div class="drawn">${tile(p.drawn)}</div>` : '';
+  const hint = hintFor(game, canClick);
+  // 建议的牌只高亮一张：是刚摸的牌就高亮它，否则高亮手牌里的第一张
+  let pendingMark = hint.suggest != null && p.drawn !== hint.suggest;
+  const tile = (t) => {
+    let cls = canClick ? 'clickable' : '';
+    if (pendingMark && t === hint.suggest) {
+      cls += ' suggest';
+      pendingMark = false;
+    }
+    return tileHTML(t, { cls, attrs: `data-tile="${t}"` });
+  };
+  const drawnCls = (canClick ? 'clickable' : '') + (hint.suggest != null && p.drawn === hint.suggest ? ' suggest' : '');
+  const drawn = p.drawn != null
+    ? `<div class="drawn">${tileHTML(p.drawn, { cls: drawnCls, attrs: `data-tile="${p.drawn}"` })}</div>`
+    : '';
 
   let actions = '';
   if (ui.choice) {
@@ -144,9 +194,10 @@ function humanHTML(game) {
   return `
     <div class="discards">${discardsHTML(p)}</div>
     <div class="actions">${actions}</div>
+    ${hint.text ? `<div class="hint">${hint.text}</div>` : ''}
     <div class="my-hand">
       <div class="melds">${meldsHTML(p)}</div>
-      <div class="hand-row">${sortTiles(rest).map(tile).join('')}</div>
+      <div class="hand-row">${sortTiles(rest).map((t) => tile(t)).join('')}</div>
       ${drawn}
     </div>`;
 }
@@ -202,6 +253,24 @@ $('#seat-0').addEventListener('click', (e) => {
 $('#restart').addEventListener('click', () => newGame());
 $('#again').addEventListener('click', () => newGame());
 
+function setHints(on) {
+  ui.hints = on;
+  save('mj-hints', on ? 'on' : 'off');
+  const btn = $('#hints');
+  btn.textContent = on ? '提示：开' : '提示：关';
+  btn.setAttribute('aria-pressed', String(on));
+  if (ui.game) render(ui.game);
+}
+
+function startTutorial() {
+  openTutorial(() => setHints(true));
+  save('mj-tutorial-seen', '1');
+}
+
+$('#hints').addEventListener('click', () => setHints(!ui.hints));
+$('#tutorial-btn').addEventListener('click', startTutorial);
+setHints(ui.hints);
+
 async function newGame() {
   ui.onDiscard = null;
   ui.choice = null;
@@ -219,3 +288,5 @@ async function newGame() {
 }
 
 newGame();
+// 第一次来的玩家自动打开新手教学
+if (!load('mj-tutorial-seen')) startTutorial();

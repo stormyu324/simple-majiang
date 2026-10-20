@@ -1,18 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { canWin, canPeng } from '../src/rules.js';
+import { canWin, canPeng, waitingTiles } from '../src/rules.js';
 import { chooseDiscard } from '../src/ai.js';
 import { Game } from '../src/game.js';
-
-// 简写：m=万 s=条 p=筒 z=字，例如 '123m' -> [0,1,2]
-function parse(str) {
-  const tiles = [];
-  for (const [, nums, suit] of str.matchAll(/(\d+)([mspz])/g)) {
-    const base = { m: 0, s: 9, p: 18, z: 27 }[suit];
-    for (const n of nums) tiles.push(base + Number(n) - 1);
-  }
-  return tiles;
-}
+import { parseTiles as parse } from '../src/tiles.js';
 
 test('标准胡牌：四组面子 + 一对将', () => {
   assert.equal(canWin(parse('123m456m789s111p55z')), true);
@@ -38,6 +29,14 @@ test('不能胡的牌', () => {
 test('碰', () => {
   assert.equal(canPeng(parse('11m'), parse('1m')[0]), true);
   assert.equal(canPeng(parse('12m'), parse('1m')[0]), false);
+});
+
+test('听牌', () => {
+  assert.deepEqual(waitingTiles(parse('123m456s789p55m34s')), parse('25s'));
+  assert.deepEqual(waitingTiles(parse('1112345678999m')), parse('123456789m')); // 九莲宝灯听九面
+  assert.deepEqual(waitingTiles(parse('123m456s789p55m3s')), []); // 张数不对
+  // 已经看到 4 张的牌不算听
+  assert.deepEqual(waitingTiles(parse('123m456s789p1z'), parse('123m456s789p1z111z')), []);
 });
 
 test('电脑优先打孤张字牌', () => {

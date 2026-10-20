@@ -46,6 +46,18 @@ export function canWin(hand) {
   return false;
 }
 
+// 听牌：hand 为 3n+1 张时，再来哪些牌就能胡。
+// visible 是自己能看到的所有牌（手牌 + 碰出的牌），已经用满 4 张的牌不算
+export function waitingTiles(hand, visible = hand) {
+  if (hand.length % 3 !== 1) return [];
+  const counts = toCounts(visible);
+  const waits = [];
+  for (let t = 0; t < TILE_KINDS; t++) {
+    if (counts[t] < 4 && canWin([...hand, t])) waits.push(t);
+  }
+  return waits;
+}
+
 export function canPeng(hand, tile) {
   return hand.filter((t) => t === tile).length >= 2;
 }
