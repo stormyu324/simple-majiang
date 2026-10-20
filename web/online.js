@@ -16,10 +16,15 @@ function saveToken(code, token) {
   try { sessionStorage.setItem(`mj-token-${code}`, token); } catch {}
 }
 
-export async function createRoom() {
+// variant：房间一开始用的玩法，进房间后房主还可以换
+export async function createRoom(variant) {
   let res;
   try {
-    res = await fetch(new URL('create', API), { method: 'POST' });
+    res = await fetch(new URL('create', API), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ variant }),
+    });
   } catch {
     throw new Error('网络连接失败，请稍后再试');
   }

@@ -1,74 +1,79 @@
 // 用 SVG 画麻将牌面。牌面坐标系 30 x 40
+// 为了在小尺寸下也看得清：图案尽量占满牌面、线条加粗、颜色对比强
 import { isHonor, tileName } from '../src/tiles.js';
 
 const NUMS = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
 const HONORS = ['东', '南', '西', '北', '中', '发', '白'];
-const FONT = `font-family="'KaiTi','STKaiti','SimSun','Songti SC',serif"`;
+const FONT = `font-family="'KaiTi','STKaiti','SimHei','Heiti SC','Microsoft YaHei',serif"`;
 
-const RED = '#c62828';
-const GREEN = '#1b7a3d';
-const BLUE = '#1d4e9e';
-const INK = '#1f2a44';
+const RED = '#c4161c';
+const GREEN = '#0e6b2f';
+const BLUE = '#123f8c';
+const INK = '#111827';
 
-// 1-9 个图案在牌面上的位置（0..1 归一化坐标）
+// 1-9 个图案在牌面上的位置（30 x 40 坐标）和每个图案的半径
 const LAYOUTS = [
-  [[0.5, 0.5]],
-  [[0.5, 0.22], [0.5, 0.78]],
-  [[0.2, 0.18], [0.5, 0.5], [0.8, 0.82]],
-  [[0.27, 0.25], [0.73, 0.25], [0.27, 0.75], [0.73, 0.75]],
-  [[0.25, 0.2], [0.75, 0.2], [0.5, 0.5], [0.25, 0.8], [0.75, 0.8]],
-  [[0.27, 0.18], [0.73, 0.18], [0.27, 0.5], [0.73, 0.5], [0.27, 0.82], [0.73, 0.82]],
-  [[0.2, 0.12], [0.5, 0.25], [0.8, 0.38], [0.27, 0.62], [0.73, 0.62], [0.27, 0.87], [0.73, 0.87]],
-  [[0.27, 0.12], [0.73, 0.12], [0.27, 0.37], [0.73, 0.37], [0.27, 0.63], [0.73, 0.63], [0.27, 0.88], [0.73, 0.88]],
-  [[0.2, 0.18], [0.5, 0.18], [0.8, 0.18], [0.2, 0.5], [0.5, 0.5], [0.8, 0.5], [0.2, 0.82], [0.5, 0.82], [0.8, 0.82]],
+  { r: 11, at: [[15, 20]] },
+  { r: 7.6, at: [[15, 10.5], [15, 29.5]] },
+  { r: 6.2, at: [[7.5, 8], [15, 20], [22.5, 32]] },
+  { r: 6.2, at: [[8.5, 11], [21.5, 11], [8.5, 29], [21.5, 29]] },
+  { r: 5.6, at: [[8, 9], [22, 9], [15, 20], [8, 31], [22, 31]] },
+  { r: 5.2, at: [[9, 7.5], [21, 7.5], [9, 20], [21, 20], [9, 32.5], [21, 32.5]] },
+  { r: 4.5, at: [[6, 5.5], [15, 10.5], [24, 15.5], [9, 25], [21, 25], [9, 34.5], [21, 34.5]] },
+  { r: 4.4, at: [[9, 5.5], [21, 5.5], [9, 15.2], [21, 15.2], [9, 24.8], [21, 24.8], [9, 34.5], [21, 34.5]] },
+  { r: 4.4, at: [[6, 7], [15, 7], [24, 7], [6, 20], [15, 20], [24, 20], [6, 33], [15, 33], [24, 33]] },
 ];
 
-function pipSize(n) {
-  if (n === 1) return 9;
-  if (n <= 4) return 5.5;
-  if (n <= 6) return 4.6;
-  return 3.8;
-}
-
-function place([x, y]) {
-  return [3 + x * 24, 4 + y * 32];
-}
-
 function dots(n) {
-  const r = pipSize(n);
-  return LAYOUTS[n - 1].map((p) => {
-    const [cx, cy] = place(p);
-    const extra = n === 1 ? `<circle cx="${cx}" cy="${cy}" r="${r * 0.65}" fill="none" stroke="${GREEN}" stroke-width="1"/>` : '';
-    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${BLUE}" stroke-width="${r * 0.32}"/>${extra}` +
-      `<circle cx="${cx}" cy="${cy}" r="${r * 0.32}" fill="${RED}"/>`;
+  const { r, at } = LAYOUTS[n - 1];
+  return at.map(([cx, cy], i) => {
+    // 五筒、九筒中间那个用红色，其他蓝色；一筒是大花饼
+    const center = (n === 5 || n === 9) && i === Math.floor(n / 2);
+    const color = n === 1 ? GREEN : center ? RED : BLUE;
+    const ring = n === 1
+      ? `<circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="${BLUE}"/><circle cx="${cx}" cy="${cy}" r="${r * 0.42}" fill="#fff"/>`
+      : `<circle cx="${cx}" cy="${cy}" r="${r * 0.55}" fill="#fff"/>`;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/>${ring}` +
+      `<circle cx="${cx}" cy="${cy}" r="${r * 0.3}" fill="${RED}"/>`;
   }).join('');
 }
 
+function stick(cx, cy, w, h, color) {
+  // 竹节：深色描边 + 中间一道节
+  return `<rect x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}" rx="${w / 2}" fill="${color}"/>` +
+    `<line x1="${cx - w / 2}" y1="${cy}" x2="${cx + w / 2}" y2="${cy}" stroke="#fff" stroke-width="0.9"/>`;
+}
+
 function sticks(n) {
-  const r = pipSize(n);
-  const w = n === 1 ? 7 : r * 0.9;
-  const h = n === 1 ? 26 : Math.min(r * 2, 8);
-  return LAYOUTS[n - 1].map((p, i) => {
-    const [cx, cy] = place(p);
-    // 一条、五条和九条的中间那根用红色点缀
-    const red = n === 1 || ((n === 5 || n === 9) && i === Math.floor(n / 2));
-    const color = red ? RED : GREEN;
-    return `<rect x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}" rx="${w / 2}" fill="${color}"/>` +
-      `<line x1="${cx}" y1="${cy - h / 2 + 1.2}" x2="${cx}" y2="${cy + h / 2 - 1.2}" stroke="#fff" stroke-width="0.6" opacity="0.7"/>`;
+  if (n === 1) {
+    // 一条：一根粗大的红绿竹子，和其他条一眼区分
+    return stick(15, 20, 9, 32, GREEN) +
+      `<rect x="13" y="6" width="4" height="28" rx="2" fill="${RED}"/>` +
+      `<line x1="10.5" y1="13" x2="19.5" y2="13" stroke="#fff" stroke-width="1"/>` +
+      `<line x1="10.5" y1="27" x2="19.5" y2="27" stroke="#fff" stroke-width="1"/>`;
+  }
+  const { r, at } = LAYOUTS[n - 1];
+  const w = Math.min(r * 1.05, 5.5);
+  const h = n <= 2 ? 15 : n <= 6 ? r * 2.1 : 9;
+  return at.map(([cx, cy], i) => {
+    const red = (n === 5 || n === 9) && i === Math.floor(n / 2);
+    return stick(cx, cy, w, h, red ? RED : GREEN);
   }).join('');
 }
 
 function characters(n) {
-  return `<text x="15" y="13" ${FONT} font-size="12" fill="${INK}" text-anchor="middle" dominant-baseline="central">${NUMS[n - 1]}</text>` +
-    `<text x="15" y="29" ${FONT} font-size="14" font-weight="bold" fill="${RED}" text-anchor="middle" dominant-baseline="central">萬</text>`;
+  // 数字是辨认的关键，写得比"萬"还大
+  return `<text x="15" y="11" ${FONT} font-size="19" font-weight="900" fill="${INK}" text-anchor="middle" dominant-baseline="central">${NUMS[n - 1]}</text>` +
+    `<text x="15" y="30" ${FONT} font-size="15" font-weight="900" fill="${RED}" text-anchor="middle" dominant-baseline="central">萬</text>`;
 }
 
 function honor(i) {
   if (i === 6) {
-    return `<rect x="6" y="8" width="18" height="24" rx="2" fill="none" stroke="${BLUE}" stroke-width="2"/>`;
+    return `<rect x="5" y="6" width="20" height="28" rx="2" fill="none" stroke="${BLUE}" stroke-width="2.6"/>` +
+      `<rect x="9" y="10" width="12" height="20" rx="1" fill="none" stroke="${BLUE}" stroke-width="1.2"/>`;
   }
   const color = i === 4 ? RED : i === 5 ? GREEN : INK;
-  return `<text x="15" y="21" ${FONT} font-size="20" font-weight="bold" fill="${color}" text-anchor="middle" dominant-baseline="central">${HONORS[i]}</text>`;
+  return `<text x="15" y="21" ${FONT} font-size="25" font-weight="900" fill="${color}" text-anchor="middle" dominant-baseline="central">${HONORS[i]}</text>`;
 }
 
 function faceSVG(tile) {
@@ -81,10 +86,11 @@ function faceSVG(tile) {
   return `<svg viewBox="0 0 30 40" aria-hidden="true">${body}</svg>`;
 }
 
-// attrs: 额外的 HTML 属性字符串；cls: 额外的 class
-export function tileHTML(tile, { cls = '', attrs = '' } = {}) {
+// attrs: 额外的 HTML 属性字符串；cls: 额外的 class；badge: 角上的小标记（例如"赖"）
+export function tileHTML(tile, { cls = '', attrs = '', badge = '' } = {}) {
   const name = tileName(tile);
-  return `<div class="tile ${cls}" title="${name}" aria-label="${name}" ${attrs}>${faceSVG(tile)}</div>`;
+  const mark = badge ? `<span class="badge">${badge}</span>` : '';
+  return `<div class="tile ${cls}" title="${name}" aria-label="${name}" ${attrs}>${faceSVG(tile)}${mark}</div>`;
 }
 
 export function backHTML(cls = '') {

@@ -13,10 +13,11 @@ export default {
 
     if (m[1]) {
       if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
+      const { variant } = await request.json().catch(() => ({}));
       // 随机挑一个没人用的 4 位房间号
       for (let i = 0; i < 20; i++) {
         const code = String(1000 + Math.floor(Math.random() * 9000));
-        const res = await room(env, code).fetch('https://room/claim', { method: 'POST' });
+        const res = await room(env, code).fetch('https://room/claim', { method: 'POST', body: JSON.stringify({ variant }) });
         if (res.ok) return Response.json({ code });
       }
       return Response.json({ error: '房间太多了，请稍后再试' }, { status: 503 });

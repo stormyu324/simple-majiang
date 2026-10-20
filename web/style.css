@@ -13,12 +13,16 @@
   --dialog-bg: #fbf7ea;
   --dialog-text: #1f2a44;
 
-  /* 牌的大小随屏幕宽度变化：手机上 14 张牌刚好放得下一行 */
-  --w: clamp(22px, calc((100vw - 64px) / 15), 46px);
-  --w-sm: clamp(15px, 2.2vw, 26px);
-  --w-xs: clamp(14px, 1.8vw, 22px);
-  --w-lg: clamp(40px, 6vw, 64px);
+  /* 牌的大小随屏幕宽度变化：手机上 14 张牌刚好放得下一行。
+     --zoom 是"大牌"开关，打开后所有牌放大 1.25 倍 */
+  --zoom: 1;
+  --w: calc(clamp(26px, calc((100vw - 64px) / 15), 56px) * var(--zoom));
+  --w-sm: calc(clamp(22px, 2.6vw, 32px) * var(--zoom));
+  --w-xs: calc(clamp(21px, 2.3vw, 30px) * var(--zoom));
+  --w-lg: calc(clamp(48px, 7vw, 76px) * var(--zoom));
 }
+/* 加在 <html> 上：--w 在 :root 上定义，--zoom 也必须在同一个元素上才生效 */
+:root.big-tiles { --zoom: 1.25; }
 
 * { box-sizing: border-box; }
 
@@ -43,7 +47,7 @@ body {
 .bar h1 { font-size: 20px; margin: 0; letter-spacing: 2px; }
 .bar { flex-wrap: wrap; gap: 8px; }
 .bar-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-#hints[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+#hints[aria-pressed="true"], #big-tiles[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 
 .btn {
   font: inherit;
@@ -278,8 +282,24 @@ body:not([data-mode="solo"]) .solo-only { display: none; }
   box-shadow: 0 calc(var(--w) * 0.08) 0 var(--tile-side), 0 2px 4px rgba(0, 0, 0, 0.35);
   margin-bottom: calc(var(--w) * 0.08);
   flex: none;
-  padding: calc(var(--w) * 0.06);
+  padding: calc(var(--w) * 0.035);
+  position: relative;
 }
+/* 角上的小标记（赖子等） */
+.tile .badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: max(10px, calc(var(--w) * 0.3));
+  line-height: 1;
+  padding: 2px 3px;
+  border-radius: 4px;
+  background: #e8a200;
+  color: #2b1d00;
+  font-weight: bold;
+}
+/* 赖子：金色边框，一眼能看出来 */
+.tile.laizi { border-color: #e8a200; box-shadow: 0 calc(var(--w) * 0.08) 0 #b37a00, 0 0 0 2px #e8a200; }
 .tile svg { display: block; width: 100%; height: 100%; }
 .tile.sm { --w: var(--w-sm); }
 .tile.xs { --w: var(--w-xs); }
@@ -421,7 +441,7 @@ body:not([data-mode="solo"]) .solo-only { display: none; }
 
 @media (max-width: 700px) {
   /* 手牌分两行放，牌大一些方便点 */
-  :root { --w: clamp(22px, calc((100vw - 72px) / 8), 46px); }
+  :root { --w: calc(clamp(26px, calc((100vw - 72px) / 8), 50px) * var(--zoom)); }
   .bar { padding: 8px 16px; }
   .bar h1 { font-size: 18px; }
   .bar-buttons { gap: 6px; }
@@ -452,3 +472,73 @@ body:not([data-mode="solo"]) .solo-only { display: none; }
   .seat.bottom { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
   .my-hand .hand-row { flex-wrap: wrap; justify-content: center; }
 }
+
+/* ---------- 地方玩法 ---------- */
+
+.variant-name { font-size: 15px; font-weight: normal; color: var(--accent); letter-spacing: 0; }
+.variant-select {
+  font: inherit;
+  font-size: 16px;
+  padding: 8px 10px;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: #173f2d;
+  color: var(--text);
+  width: 100%;
+}
+.variant-desc a { color: var(--accent); }
+.room-variant { width: 100%; }
+
+.tag.dealer { background: #b4532a; }
+.tag.que { background: #3b5ea8; }
+.tag.win { background: var(--accent); color: #3a2a00; }
+.score { color: var(--accent); font-weight: bold; }
+.score.neg { color: #ffb4a2; }
+
+/* 打出去当杠的牌（红中杠、皮子杠、赖子杠） */
+.specials { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 4px 0; }
+.specials .muted { margin-right: 4px; }
+
+.center .laizi-box { display: flex; align-items: center; gap: 6px; }
+.center .phase { color: var(--accent); }
+
+/* 轮到自己出牌时，不能打的牌（赖子、皮子、缺门以外的牌）变暗 */
+.tile.dim { filter: brightness(0.72); }
+.btn.action { border-color: var(--accent); }
+
+/* 3 人玩法：没有上方的座位 */
+.table[data-players="3"] {
+  grid-template-areas:
+    "left   center right"
+    "bottom bottom bottom";
+}
+
+.dialog.result { max-width: 680px; max-height: calc(100vh - 32px); overflow-y: auto; }
+.result-wins { text-align: left; }
+.win-row p { margin: 6px 0; }
+.win-row .hand-row { justify-content: flex-start; margin: 4px 0 12px; gap: 6px; }
+.win-row .meld { display: flex; gap: 1px; }
+.score-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 14px; }
+.score-table th, .score-table td { padding: 6px 4px; border-bottom: 1px solid #e3d9bb; }
+.score-table th { font-weight: bold; }
+.score-table td:first-child { color: #7a7460; }
+.score-table .pos { color: #22764a; font-weight: bold; }
+.score-table .neg { color: #b02323; font-weight: bold; }
+.result-lines { text-align: left; font-size: 13px; color: #5d5845; padding-left: 20px; margin: 6px 0 14px; }
+
+.dialog.rules { max-width: 620px; max-height: calc(100vh - 32px); overflow-y: auto; text-align: left; }
+.rules-list { line-height: 1.7; padding-left: 22px; }
+.rules-list li { margin: 6px 0; }
+
+@media (max-width: 700px) {
+  .table[data-players="3"] {
+    grid-template-areas:
+      "left   right"
+      "center center"
+      "bottom bottom";
+  }
+}
+
+/* 选中的牌会往上抬，给上面的按钮留出空间，免得挡住 */
+.bottom .actions { margin-bottom: calc(var(--w) * 0.45); }

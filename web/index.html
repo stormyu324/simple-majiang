@@ -9,10 +9,12 @@
 </head>
 <body>
   <header class="bar">
-    <h1>简单麻将</h1>
+    <h1>简单麻将 <span id="variant-name" class="variant-name"></span></h1>
     <div class="bar-buttons">
       <button id="tutorial-btn" class="btn">📖 新手教学</button>
+      <button id="rules-btn" class="btn">📜 玩法规则</button>
       <button id="hints" class="btn" aria-pressed="false">提示：关</button>
+      <button id="big-tiles" class="btn" aria-pressed="false">🔍 大牌</button>
       <button id="restart" class="btn solo-only">重新开始</button>
       <button id="menu" class="btn game-only">返回菜单</button>
     </div>
@@ -22,7 +24,11 @@
   <section id="lobby" class="lobby">
     <div class="panel" data-screen="home">
       <p class="invite-note" hidden></p>
-      <button class="btn primary big" data-act="solo">🀄 单人练习 <small>和 3 个电脑打</small></button>
+      <label class="field">玩法
+        <select id="variant" class="variant-select"></select>
+      </label>
+      <p class="variant-desc muted small"></p>
+      <button class="btn primary big" data-act="solo">🀄 单人练习 <small>和电脑打</small></button>
 
       <h2>好友对战</h2>
       <label class="field">你的名字
@@ -34,13 +40,14 @@
         <button class="btn" data-act="join">加入</button>
         <button class="btn" data-act="watch">👀 观战</button>
       </div>
-      <p class="muted small">最多 4 人，空座位由电脑补上。观战的人只能看到打出和碰出的牌。</p>
+      <p class="muted small">用上面选的玩法开房间，进房间后房主还可以换。空座位由电脑补上。观战的人只能看到打出和碰出的牌。</p>
       <p class="lobby-error" role="alert"></p>
     </div>
 
     <div class="panel" data-screen="room" hidden>
       <p class="muted">房间号</p>
       <div class="room-code">----</div>
+      <div class="room-variant"></div>
       <button class="btn" data-room="invite">📋 复制邀请链接</button>
       <ol class="seat-list"></ol>
       <p class="room-spectators muted small"></p>
@@ -65,10 +72,11 @@
   </details>
 
   <div id="result" class="overlay" hidden>
-    <div class="dialog">
+    <div class="dialog result">
       <h2></h2>
-      <p class="detail"></p>
-      <div class="hand-row"></div>
+      <div class="result-wins"></div>
+      <table class="score-table"></table>
+      <ul class="result-lines"></ul>
       <div class="dialog-buttons">
         <button id="result-close" class="btn light">看看牌桌</button>
         <button id="again" class="btn primary">再来一局</button>
@@ -77,6 +85,15 @@
   </div>
 
   <div id="toast" class="toast" role="status" hidden></div>
+
+  <div id="rules" class="overlay" hidden>
+    <div class="dialog rules" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <h2 id="rules-title"></h2>
+      <ol class="rules-list"></ol>
+      <p class="muted small">各地规则差别很大，这里按最常见的打法来做。</p>
+      <div class="dialog-buttons"><button class="btn primary" data-close="rules">知道了</button></div>
+    </div>
+  </div>
 
   <div id="tutorial" class="overlay" hidden>
     <div class="dialog tutorial" role="dialog" aria-modal="true" aria-labelledby="tut-title">

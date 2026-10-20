@@ -19,14 +19,30 @@ export function tileName(tile) {
   return NUMS[tile % 9] + SUITS[Math.floor(tile / 9)];
 }
 
+// 花色：0 万、1 条、2 筒、3 字牌
+export function suitOf(tile) {
+  return Math.floor(tile / 9);
+}
+
+// 点数 1-9（字牌返回 0）
+export function rankOf(tile) {
+  return isHonor(tile) ? 0 : (tile % 9) + 1;
+}
+
+export const SUIT_NAMES = ['万', '条', '筒', '字'];
+
+// 一副牌里有哪些牌：各地玩法用的牌不一样
+export const ALL_KINDS = Array.from({ length: TILE_KINDS }, (_, t) => t);
+export const SUITED_KINDS = ALL_KINDS.slice(0, 27);
+
 export function sortTiles(tiles) {
   return [...tiles].sort((a, b) => a - b);
 }
 
-// 每种牌 4 张，共 136 张，洗好后返回
-export function createWall(random = Math.random) {
+// kinds 里的每种牌 4 张（默认全部 34 种，共 136 张），洗好后返回
+export function createWall(random = Math.random, kinds = ALL_KINDS) {
   const wall = [];
-  for (let t = 0; t < TILE_KINDS; t++) {
+  for (const t of kinds) {
     for (let i = 0; i < 4; i++) wall.push(t);
   }
   for (let i = wall.length - 1; i > 0; i--) {
