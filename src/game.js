@@ -52,15 +52,19 @@ export class Game {
     }
   }
 
-  async confirm(question) {
+  // action 是按钮上显示的动作名（胡/碰/自摸），命令行版用不到
+  async confirm(question, action) {
     const ans = (await this.io.ask(`${question} (y/n)：`)).trim().toLowerCase();
     return ans === 'y' || ans === 'yes' || ans === '';
   }
 
+  // 每打出一张牌后调用，网页版用它来刷新画面和控制节奏
+  async afterDiscard(seat, tile) {}
+
   // 返回是否胡牌
   async checkSelfDrawWin(player) {
     if (!canWin(player.hand)) return false;
-    if (player.isHuman) return this.confirm('可以自摸！要胡吗？');
+    if (player.isHuman) return this.confirm('可以自摸！要胡吗？', '自摸');
     return true;
   }
 
@@ -72,7 +76,7 @@ export class Game {
       const seat = (fromSeat + k) % 4;
       const p = this.players[seat];
       if (!canWin([...p.hand, tile])) continue;
-      if (!p.isHuman || (await this.confirm(`${tileName(tile)} 可以胡！要胡吗？`))) {
+      if (!p.isHuman || (await this.confirm(`${tileName(tile)} 可以胡！要胡吗？`, '胡'))) {
         return { type: 'win', seat };
       }
     }
@@ -81,7 +85,7 @@ export class Game {
       const p = this.players[seat];
       if (!canPeng(p.hand, tile)) continue;
       const want = p.isHuman
-        ? await this.confirm(`要碰 ${tileName(tile)} 吗？`)
+        ? await this.confirm(`要碰 ${tileName(tile)} 吗？`, '碰')
         : shouldPeng(p.hand, tile);
       if (want) return { type: 'peng', seat };
     }
@@ -109,6 +113,7 @@ export class Game {
 
     while (true) {
       const player = this.players[seat];
+      this.turn = seat;
 
       if (needDraw) {
         if (this.wall.length === 0) {
@@ -117,6 +122,7 @@ export class Game {
         }
         const tile = this.wall.shift();
         player.hand.push(tile);
+        player.drawn = tile;
         if (player.isHuman) {
           this.showTable();
           log(`你摸到了：${tileName(tile)}`);
@@ -133,7 +139,9 @@ export class Game {
         ? await this.humanDiscard(player)
         : chooseDiscard(player.hand);
       removeTiles(player.hand, discard, 1);
+      player.drawn = null;
       log(`${player.name} 打出 ${tileName(discard)}`);
+      await this.afterDiscard(seat, discard);
 
       const claim = await this.checkClaims(seat, discard);
       if (claim?.type === 'win') {
