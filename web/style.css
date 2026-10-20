@@ -25,6 +25,8 @@
 body {
   margin: 0;
   min-height: 100vh;
+  /* 关掉手机上的双击放大，否则"点两下打出"会把页面放大 */
+  touch-action: manipulation;
   background: radial-gradient(ellipse at center, var(--felt-light), var(--felt) 55%, var(--felt-dark));
   color: var(--text);
   font-family: system-ui, "Microsoft YaHei", "PingFang SC", sans-serif;
@@ -182,7 +184,17 @@ body {
 .tile.ghost { opacity: 0.15; box-shadow: none; }
 
 .tile.clickable { cursor: pointer; transition: transform 0.12s; }
-.tile.clickable:hover { transform: translateY(-25%); }
+/* 只在有鼠标的设备上做悬停效果，手机上悬停会"粘住" */
+@media (hover: hover) {
+  .tile.clickable:hover { transform: translateY(-25%); }
+}
+/* 触屏上第一下选中的牌（写成 .clickable.selected，优先级高于下面的 .suggest） */
+.tile.clickable.selected {
+  transform: translateY(-35%);
+  outline: 3px solid #fff;
+  outline-offset: 1px;
+  box-shadow: 0 calc(var(--w) * 0.08) 0 var(--tile-side), 0 6px 14px rgba(0, 0, 0, 0.5);
+}
 /* 提示建议打出的牌 */
 .tile.suggest {
   outline: 3px solid var(--accent);
@@ -267,6 +279,8 @@ body {
 .overlay {
   position: fixed;
   inset: 0;
+  /* 必须高于手机上固定在底部的手牌（z-index: 5） */
+  z-index: 100;
   background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
@@ -290,9 +304,31 @@ body {
 
 /* ---------- 手机 ---------- */
 
+/* 触屏设备：按钮至少 44px 高，方便手指点 */
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .tut-close { min-width: 44px; min-height: 44px; }
+}
+
 @media (max-width: 700px) {
   /* 手牌分两行放，牌大一些方便点 */
   :root { --w: clamp(22px, calc((100vw - 72px) / 8), 46px); }
+  .bar { padding: 8px 16px; }
+  .bar h1 { font-size: 18px; }
+  .bar-buttons { gap: 6px; }
+  .bar .btn { padding: 6px 12px; font-size: 15px; }
+  .center .last { flex-direction: row; gap: 8px; }
+  .center .last-label { font-size: 13px; }
+  /* 自己的手牌固定在屏幕底部：往上滑看别家时，手牌一直在眼前 */
+  .seat.bottom {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: #163f2c;
+    box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.35);
+  }
+  .bottom .actions { min-height: 32px; margin: 4px 0; }
+  .bottom .prompt { font-size: 14px; text-align: center; }
   .table {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
@@ -302,7 +338,8 @@ body {
       "bottom bottom";
     gap: 8px;
   }
-  .center { min-height: 110px; flex-direction: row; gap: 20px; }
+  .center { min-height: 72px; padding: 6px; flex-direction: row; gap: 20px; }
   .seat { padding: 8px; }
+  .seat.bottom { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
   .my-hand .hand-row { flex-wrap: wrap; justify-content: center; }
 }

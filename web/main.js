@@ -12,6 +12,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const AI_DELAY = 700;
 const HUMAN_DELAY = 250;
 
+// 触屏设备（手机、平板）上点两下才打出：第一下选中，第二下确认，防止手指点错
+const TOUCH = matchMedia('(hover: none) and (pointer: coarse)').matches;
+
 // ---------- 网页版游戏：把命令行的输入输出换成画面和点击 ----------
 
 class WebGame extends Game {
@@ -55,8 +58,10 @@ class WebGame extends Game {
 
   humanDiscard() {
     return new Promise((resolve) => {
+      ui.selected = null;
       ui.onDiscard = (tile) => {
         ui.onDiscard = null;
+        ui.selected = null;
         resolve(tile);
       };
       render(this);
@@ -97,6 +102,8 @@ const ui = {
   game: null,
   onDiscard: null, // 等待玩家出牌时的回调
   choice: null, // 等待玩家选择 胡/碰 时的状态
+  selected: null, // 触屏上第一下选中的牌在手牌里的位置（data-pos）
+  selectedTile: null, // 选中的是哪种牌
   hints: load('mj-hints') === 'on', // 是否显示出牌建议和听牌
 };
 
@@ -169,26 +176,30 @@ function humanHTML(game) {
   const hint = hintFor(game, canClick);
   // 建议的牌只高亮一张：是刚摸的牌就高亮它，否则高亮手牌里的第一张
   let pendingMark = hint.suggest != null && p.drawn !== hint.suggest;
-  const tile = (t) => {
+  // 每张牌按显示顺序编号，同样的牌有好几张时也能分清选中的是哪一张
+  let pos = 0;
+  const tile = (t, isDrawn = false) => {
     let cls = canClick ? 'clickable' : '';
-    if (pendingMark && t === hint.suggest) {
+    const markThis = isDrawn ? hint.suggest === t : pendingMark && t === hint.suggest;
+    if (markThis) {
       cls += ' suggest';
       pendingMark = false;
     }
-    return tileHTML(t, { cls, attrs: `data-tile="${t}"` });
+    if (canClick && ui.selected === pos) cls += ' selected';
+    return tileHTML(t, { cls, attrs: `data-tile="${t}" data-pos="${pos++}"` });
   };
-  const drawnCls = (canClick ? 'clickable' : '') + (hint.suggest != null && p.drawn === hint.suggest ? ' suggest' : '');
-  const drawn = p.drawn != null
-    ? `<div class="drawn">${tileHTML(p.drawn, { cls: drawnCls, attrs: `data-tile="${p.drawn}"` })}</div>`
-    : '';
+  const handHTML = sortTiles(rest).map((t) => tile(t)).join('');
+  const drawn = p.drawn != null ? `<div class="drawn">${tile(p.drawn, true)}</div>` : '';
 
   let actions = '';
   if (ui.choice) {
     actions = `<span class="prompt">${ui.choice.question}</span>
       <button class="btn primary" data-choice="yes">${ui.choice.action}</button>
       <button class="btn" data-choice="no">过</button>`;
+  } else if (canClick && TOUCH && ui.selected != null) {
+    actions = `<span class="prompt">再点一次 <b>${tileName(ui.selectedTile)}</b> 打出，点别的牌换一张</span>`;
   } else if (canClick) {
-    actions = '<span class="prompt">轮到你了，点一张牌打出</span>';
+    actions = `<span class="prompt">${TOUCH ? '轮到你了：点一张牌选中，再点一次打出' : '轮到你了，点一张牌打出'}</span>`;
   }
 
   return `
@@ -197,7 +208,7 @@ function humanHTML(game) {
     ${hint.text ? `<div class="hint">${hint.text}</div>` : ''}
     <div class="my-hand">
       <div class="melds">${meldsHTML(p)}</div>
-      <div class="hand-row">${sortTiles(rest).map((t) => tile(t)).join('')}</div>
+      <div class="hand-row">${handHTML}</div>
       ${drawn}
     </div>`;
 }
@@ -247,7 +258,15 @@ $('#seat-0').addEventListener('click', (e) => {
     return;
   }
   const tileEl = e.target.closest('[data-tile]');
-  if (tileEl && ui.onDiscard) ui.onDiscard(Number(tileEl.dataset.tile));
+  if (!tileEl || !ui.onDiscard) return;
+  const pos = Number(tileEl.dataset.pos);
+  if (!TOUCH || ui.selected === pos) {
+    ui.onDiscard(Number(tileEl.dataset.tile));
+  } else {
+    ui.selected = pos;
+    ui.selectedTile = Number(tileEl.dataset.tile);
+    render(ui.game);
+  }
 });
 
 $('#restart').addEventListener('click', () => newGame());
