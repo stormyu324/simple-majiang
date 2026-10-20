@@ -1,0 +1,12 @@
+{
+  "name": "simple-mahjong",
+  "version": "1.0.0",
+  "description": "一个简单的命令行麻将游戏（1 名玩家 vs 3 个电脑）",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test"
+  },
+  "license": "MIT"
+}
