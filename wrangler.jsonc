@@ -1,4 +1,5 @@
-// Cloudflare Worker 配置：只托管静态文件，绑定自定义域名 majiang.stormnovalabs.com
+// Cloudflare Worker 配置：只托管静态文件
+// 主地址 games.stormnovalabs.com/majiang/，只接管 /majiang 开头的路径，不影响 games 子域名下的其他程序
 {
   "name": "majiang",
   // stormnovalabs.com 所在的 Cloudflare 账户
@@ -9,6 +10,9 @@
   },
   "workers_dev": false,
   "routes": [
+    { "pattern": "games.stormnovalabs.com/majiang", "zone_name": "stormnovalabs.com" },
+    { "pattern": "games.stormnovalabs.com/majiang/*", "zone_name": "stormnovalabs.com" },
+    // 旧地址，保留以免已有链接失效；不需要时删掉这一行
     { "pattern": "majiang.stormnovalabs.com", "custom_domain": true }
   ]
 }
