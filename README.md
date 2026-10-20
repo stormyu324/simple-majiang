@@ -16,7 +16,7 @@ npm test       # 运行测试
 
 ## 在线试玩
 
-- https://games.stormnovalabs.com/majiang/ （Cloudflare Worker；旧地址 majiang.stormnovalabs.com 也还能用）
+- https://games.stormnovalabs.com/majiang/ （Cloudflare Worker）
 - https://stormyu324.github.io/simple-majiang/ （GitHub Pages，推送后自动更新）
 
 更新 Cloudflare 上的版本：

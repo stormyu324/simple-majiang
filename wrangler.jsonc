@@ -11,8 +11,6 @@
   "workers_dev": false,
   "routes": [
     { "pattern": "games.stormnovalabs.com/majiang", "zone_name": "stormnovalabs.com" },
-    { "pattern": "games.stormnovalabs.com/majiang/*", "zone_name": "stormnovalabs.com" },
-    // 旧地址，保留以免已有链接失效；不需要时删掉这一行
-    { "pattern": "majiang.stormnovalabs.com", "custom_domain": true }
+    { "pattern": "games.stormnovalabs.com/majiang/*", "zone_name": "stormnovalabs.com" }
   ]
 }
