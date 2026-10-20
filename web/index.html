@@ -13,11 +13,45 @@
     <div class="bar-buttons">
       <button id="tutorial-btn" class="btn">📖 新手教学</button>
       <button id="hints" class="btn" aria-pressed="false">提示：关</button>
-      <button id="restart" class="btn">重新开始</button>
+      <button id="restart" class="btn solo-only">重新开始</button>
+      <button id="menu" class="btn game-only">返回菜单</button>
     </div>
   </header>
 
-  <main class="table">
+  <!-- 菜单和等候室：开局前显示，开局后隐藏 -->
+  <section id="lobby" class="lobby">
+    <div class="panel" data-screen="home">
+      <p class="invite-note" hidden></p>
+      <button class="btn primary big" data-act="solo">🀄 单人练习 <small>和 3 个电脑打</small></button>
+
+      <h2>好友对战</h2>
+      <label class="field">你的名字
+        <input id="name" maxlength="12" placeholder="玩家" autocomplete="nickname">
+      </label>
+      <button class="btn primary" data-act="create">创建房间</button>
+      <div class="join-row">
+        <input id="code" inputmode="numeric" maxlength="4" placeholder="4 位房间号" aria-label="房间号">
+        <button class="btn" data-act="join">加入</button>
+        <button class="btn" data-act="watch">👀 观战</button>
+      </div>
+      <p class="muted small">最多 4 人，空座位由电脑补上。观战的人只能看到打出和碰出的牌。</p>
+      <p class="lobby-error" role="alert"></p>
+    </div>
+
+    <div class="panel" data-screen="room" hidden>
+      <p class="muted">房间号</p>
+      <div class="room-code">----</div>
+      <button class="btn" data-room="invite">📋 复制邀请链接</button>
+      <ol class="seat-list"></ol>
+      <p class="room-spectators muted small"></p>
+      <div class="room-start"></div>
+      <button class="btn light-text" data-room="leave">离开房间</button>
+    </div>
+  </section>
+
+  <div id="room-bar" class="room-bar" hidden></div>
+
+  <main class="table" hidden>
     <section id="seat-2" class="seat top"></section>
     <section id="seat-3" class="seat left"></section>
     <section id="center" class="center"></section>
@@ -25,7 +59,7 @@
     <section id="seat-0" class="seat bottom"></section>
   </main>
 
-  <details class="log-box">
+  <details class="log-box game-only">
     <summary>对局记录</summary>
     <ol id="log"></ol>
   </details>
@@ -35,9 +69,14 @@
       <h2></h2>
       <p class="detail"></p>
       <div class="hand-row"></div>
-      <button id="again" class="btn primary">再来一局</button>
+      <div class="dialog-buttons">
+        <button id="result-close" class="btn light">看看牌桌</button>
+        <button id="again" class="btn primary">再来一局</button>
+      </div>
     </div>
   </div>
+
+  <div id="toast" class="toast" role="status" hidden></div>
 
   <div id="tutorial" class="overlay" hidden>
     <div class="dialog tutorial" role="dialog" aria-modal="true" aria-labelledby="tut-title">

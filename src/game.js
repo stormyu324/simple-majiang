@@ -14,12 +14,14 @@ function formatHand(hand) {
 
 export class Game {
   // io: { log(msg), ask(question) => Promise<string> }
-  constructor(io, random = Math.random) {
+  // log 是所有人都能看到的公开记录，不要往里写任何人的手牌
+  // names / humans：每个座位的名字、是不是真人（联网对战时有多个真人）
+  constructor(io, random = Math.random, names = SEAT_NAMES, humans = [true, false, false, false]) {
     this.io = io;
     this.wall = createWall(random);
-    this.players = SEAT_NAMES.map((name, i) => ({
+    this.players = names.map((name, i) => ({
       name,
-      isHuman: i === 0,
+      isHuman: humans[i],
       hand: [],
       melds: [],
       discards: [],
@@ -52,8 +54,14 @@ export class Game {
     }
   }
 
-  // action 是按钮上显示的动作名（胡/碰/自摸），命令行版用不到
-  async confirm(question, action) {
+  // 真人摸到牌后调用。这是只给这个玩家看的信息，不能写进公开的 log
+  showDrawn(player, tile) {
+    this.showTable();
+    this.io.log(`你摸到了：${tileName(tile)}`);
+  }
+
+  // action 是按钮上显示的动作名（胡/碰/自摸），player 是要做选择的玩家；命令行版用不到这两个
+  async confirm(question, action, player) {
     const ans = (await this.io.ask(`${question} (y/n)：`)).trim().toLowerCase();
     return ans === 'y' || ans === 'yes' || ans === '';
   }
@@ -64,7 +72,7 @@ export class Game {
   // 返回是否胡牌
   async checkSelfDrawWin(player) {
     if (!canWin(player.hand)) return false;
-    if (player.isHuman) return this.confirm('可以自摸！要胡吗？', '自摸');
+    if (player.isHuman) return this.confirm('可以自摸！要胡吗？', '自摸', player);
     return true;
   }
 
@@ -76,7 +84,7 @@ export class Game {
       const seat = (fromSeat + k) % 4;
       const p = this.players[seat];
       if (!canWin([...p.hand, tile])) continue;
-      if (!p.isHuman || (await this.confirm(`${tileName(tile)} 可以胡！要胡吗？`, '胡'))) {
+      if (!p.isHuman || (await this.confirm(`${tileName(tile)} 可以胡！要胡吗？`, '胡', p))) {
         return { type: 'win', seat };
       }
     }
@@ -85,7 +93,7 @@ export class Game {
       const p = this.players[seat];
       if (!canPeng(p.hand, tile)) continue;
       const want = p.isHuman
-        ? await this.confirm(`要碰 ${tileName(tile)} 吗？`, '碰')
+        ? await this.confirm(`要碰 ${tileName(tile)} 吗？`, '碰', p)
         : shouldPeng(p.hand, tile);
       if (want) return { type: 'peng', seat };
     }
@@ -106,7 +114,7 @@ export class Game {
   async play() {
     const { log } = this.io;
     this.deal();
-    log('游戏开始！你坐东家，先摸牌。');
+    log(`游戏开始！${this.players[0].name}坐东家，先摸牌。`);
 
     let seat = 0;
     let needDraw = true;
@@ -123,10 +131,7 @@ export class Game {
         const tile = this.wall.shift();
         player.hand.push(tile);
         player.drawn = tile;
-        if (player.isHuman) {
-          this.showTable();
-          log(`你摸到了：${tileName(tile)}`);
-        }
+        if (player.isHuman) this.showDrawn(player, tile);
         if (await this.checkSelfDrawWin(player)) {
           this.announceWin(player, '自摸');
           return seat;

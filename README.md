@@ -26,6 +26,23 @@ npx wrangler login   # 第一次需要登录
 npm run deploy       # 生成 dist/ 并部署
 ```
 
+## 好友对战和观战（网页版）
+
+打开网页先选模式：**单人练习**（和 3 个电脑打）或**好友对战**。
+
+- **创建房间**拿到 4 位房间号，点"复制邀请链接"发给好友；好友打开链接点"加入"
+- 最多 4 个人，房主随时可以开局，空座位由电脑来打
+- 对局中有人掉线，电脑先替他打；他刷新页面或重新连上后接着自己打
+- 出牌限时 30 秒，胡/碰 限时 15 秒，超时自动处理
+- **观战**：输入房间号点"观战"。观战的人只能看到打出的牌、碰出的牌和每家张数，一局结束后才翻开所有手牌。两局之间有空位时可以点"入座"
+- 牌局全部在服务器上判定，每个人只收到自己能看的牌，打开开发者工具也看不到别人的手牌
+
+好友对战需要房间服务器，只能在 games.stormnovalabs.com/majiang/ 上玩；GitHub Pages 和 `npm run web` 只能单人练习。本地测试好友对战用：
+
+```bash
+npm run build && npx wrangler dev   # 打开 http://localhost:8787/majiang/
+```
+
 ## 规则
 
 - 136 张牌：万、条、筒各 1-9，字牌东南西北中发白，每种 4 张
@@ -53,7 +70,10 @@ src/rules.js       胡牌、碰牌判定
 src/ai.js          电脑的出牌策略
 src/game.js        游戏流程（两个版本共用）
 web/index.html     网页版页面
-web/main.js        网页版界面：渲染牌桌、处理点击
+web/main.js        网页版界面：菜单、等候室、渲染牌桌、处理点击
+web/online.js      好友对战：创建房间、WebSocket 连接和断线重连
+server/worker.js   Cloudflare Worker 入口：/majiang/api/* 交给房间，其他是静态文件
+server/room.js     房间服务器（Durable Object）：座位、观战、牌局判定
 web/tile-art.js    用 SVG 画牌面
 web/tutorial.js    新手教学和小测验
 web/style.css      样式

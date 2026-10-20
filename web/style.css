@@ -66,6 +66,114 @@ body {
 /* 浅色弹窗里的普通按钮 */
 .btn.light { color: var(--dialog-text); border-color: #cfc4a5; background: transparent; }
 .btn.light:hover:not(:disabled) { background: #efe7cf; }
+.btn.big { padding: 12px 24px; font-size: 18px; }
+.btn.big small { display: block; font-weight: normal; font-size: 13px; opacity: 0.8; }
+.btn.light-text { border-color: transparent; background: none; color: var(--muted); }
+
+/* hidden 要压过 .table 等元素自己的 display */
+[hidden] { display: none !important; }
+
+/* 哪些按钮在哪种模式下出现：menu | solo | online */
+body[data-mode="menu"] .game-only,
+body:not([data-mode="solo"]) .solo-only { display: none; }
+
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+
+.tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: normal;
+  padding: 0 6px;
+  margin-left: 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  vertical-align: 1px;
+}
+.tag.me { background: var(--accent); color: #3a2a00; }
+.tag.warn { background: #b4532a; }
+.wind {
+  display: inline-block;
+  min-width: 1.6em;
+  margin-right: 4px;
+  color: var(--accent);
+  font-weight: bold;
+}
+
+/* ---------- 菜单 / 等候室 ---------- */
+
+.lobby { display: flex; justify-content: center; padding: 16px; }
+.panel {
+  width: 100%;
+  max-width: 420px;
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+.panel h2 { margin: 12px 0 0; font-size: 18px; border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 18px; }
+.panel p { margin: 0; }
+.field { display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: 14px; color: var(--muted); }
+.panel input {
+  font: inherit;
+  font-size: 16px; /* 小于 16px 时 iPhone 会自动放大页面 */
+  padding: 8px 12px;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text);
+  min-width: 0;
+}
+.panel input::placeholder { color: rgba(255, 255, 255, 0.4); }
+.join-row { display: flex; gap: 8px; }
+.join-row input { flex: 1; letter-spacing: 4px; text-align: center; }
+.invite-note { background: rgba(242, 193, 78, 0.18); border: 1px solid var(--accent); border-radius: 8px; padding: 8px; }
+.lobby-error { color: #ffb4a2; min-height: 1.2em; }
+.lobby-error:empty { display: none; }
+
+.room-code { font-size: 44px; font-weight: bold; letter-spacing: 10px; color: var(--accent); margin-top: -8px; }
+.seat-list { list-style: none; padding: 0; margin: 4px 0; text-align: left; display: flex; flex-direction: column; gap: 6px; }
+.seat-list li { background: rgba(0, 0, 0, 0.15); border-radius: 8px; padding: 8px 12px; }
+.room-start { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+
+/* 对局中顶部的房间信息条 */
+.room-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 1100px;
+  margin: 0 auto 10px;
+  padding: 6px 16px;
+  font-size: 14px;
+}
+.room-bar .room-info { color: var(--muted); }
+.room-bar b { color: var(--text); }
+.room-bar .warn { color: #ffb4a2; }
+.room-actions { display: flex; gap: 8px; }
+
+.countdown { font-weight: bold; margin-left: 4px; }
+.countdown.urgent { color: #ff8a70; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  z-index: 200;
+  max-width: calc(100vw - 32px);
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  word-break: break-all;
+}
 
 /* ---------- 牌桌布局 ---------- */
 
@@ -301,6 +409,7 @@ body {
 .dialog .hand-row { justify-content: center; margin: 14px 0 18px; }
 .dialog .tile.sm { --w: clamp(20px, 6vw, 34px); }
 .dialog code { background: #eee6cc; padding: 1px 6px; border-radius: 4px; }
+.dialog-buttons { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
 
 /* ---------- 手机 ---------- */
 

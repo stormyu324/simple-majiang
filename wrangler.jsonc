@@ -1,13 +1,19 @@
-// Cloudflare Worker 配置：只托管静态文件
+// Cloudflare Worker 配置：静态文件 + 联网对战的房间服务器（Durable Object）
 // 主地址 games.stormnovalabs.com/majiang/，只接管 /majiang 开头的路径，不影响 games 子域名下的其他程序
 {
   "name": "majiang",
   // stormnovalabs.com 所在的 Cloudflare 账户
   "account_id": "d22bdb7bc1755ad305aabca0ccca32be",
   "compatibility_date": "2026-10-01",
+  "main": "server/worker.js",
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    "binding": "ASSETS"
   },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "MajiangRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["MajiangRoom"] }],
   "workers_dev": false,
   "routes": [
     { "pattern": "games.stormnovalabs.com/majiang", "zone_name": "stormnovalabs.com" },
