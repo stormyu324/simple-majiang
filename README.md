@@ -64,6 +64,7 @@ npm run build && npx wrangler dev   # 打开 http://localhost:8787/majiang/
 - **📖 新手教学**：14 步从零教起——认牌、面子和将、胡牌公式、一回合怎么打、听牌、出牌技巧，中间有 4 道小测验。第一次打开网页会自动弹出。
 - **提示**：打开后，轮到你时会高亮建议打的牌，并显示你现在听哪些牌（按当前玩法的规则算）。学完教学会自动打开。
 - **🔍 大牌**：所有牌放大 1.25 倍，看不清牌的时候打开。
+- **🔊 声音**：音效（洗牌发牌、出牌、碰杠、倒计时）、配音（报牌名、喊吃碰杠胡，用浏览器自带的中文语音）、古筝风格的背景音乐，都可以单独开关、调音量。声音全部在浏览器里现场合成，不需要音频文件。
 
 ## 代码结构
 
@@ -83,6 +84,8 @@ web/online.js      好友对战：创建房间、WebSocket 连接和断线重连
 server/worker.js   Cloudflare Worker 入口：/majiang/api/* 交给房间，其他是静态文件
 server/room.js     房间服务器（Durable Object）：座位、观战、牌局判定
 web/tile-art.js    用 SVG 画牌面
+web/sound.js       音效、配音、背景音乐（Web Audio 合成 + 浏览器语音）
+web/announcer.js   根据画面变化决定放什么声音、喊什么
 web/tutorial.js    新手教学和小测验
 web/style.css      样式
 web/server.js      本地静态服务器（npm run web）

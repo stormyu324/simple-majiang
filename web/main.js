@@ -5,6 +5,8 @@ import { sortTiles, tileName, suitOf, SUIT_NAMES } from '../src/tiles.js';
 import { tileHTML, backHTML } from './tile-art.js';
 import { openTutorial } from './tutorial.js';
 import { createRoom, hasSeat, OnlineRoom } from './online.js';
+import { unlock, play, prefs, setPref, voiceAvailable } from './sound.js';
+import { announce } from './announcer.js';
 
 const $ = (sel) => document.querySelector(sel);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -75,10 +77,11 @@ let refreshQueued = false;
 function scheduleRefresh() {
   if (refreshQueued) return;
   refreshQueued = true;
-  requestAnimationFrame(() => {
+  // 用 setTimeout 而不是 requestAnimationFrame：后者在页面不显示时会暂停，配音会漏掉
+  setTimeout(() => {
     refreshQueued = false;
     refresh();
-  });
+  }, 0);
 }
 
 async function newSoloGame() {
@@ -417,13 +420,18 @@ function refresh() {
   const view = currentView();
   $('.table').hidden = !view;
   if (view) render(view);
+  announce(view);
   $('#variant-name').textContent = ui.mode ? `· ${currentVariant().short}` : '';
   renderRoomBar();
 }
 
+let lastLeft = null;
 function updateCountdown() {
   if (!ui.deadline) return;
   const left = Math.max(0, Math.ceil((ui.deadline - Date.now()) / 1000));
+  // 最后 5 秒每秒"嘀"一声
+  if (left !== lastLeft && left > 0 && left <= 5) play('tick');
+  lastLeft = left;
   document.querySelectorAll('.countdown').forEach((el) => {
     el.textContent = `${left} 秒`;
     el.classList.toggle('urgent', left <= 5);
@@ -855,11 +863,45 @@ function setBigTiles(on) {
 $('#big-tiles').addEventListener('click', () => setBigTiles(load('mj-big') !== 'on'));
 setBigTiles(load('mj-big') === 'on');
 
+// ---------- 声音设置 ----------
+
+function renderSoundPanel() {
+  const panel = $('#sound-panel');
+  panel.querySelector('[data-pref="sfx"]').checked = prefs.sfx;
+  panel.querySelector('[data-pref="voice"]').checked = prefs.voice;
+  panel.querySelector('[data-pref="music"]').checked = prefs.music;
+  panel.querySelector('[data-pref="volume"]').value = prefs.volume;
+  panel.querySelector('[data-pref="musicVolume"]').value = prefs.musicVolume;
+  panel.querySelector('.voice-note').hidden = voiceAvailable();
+  const on = prefs.sfx || prefs.voice || prefs.music;
+  $('#sound-btn').textContent = on ? '🔊 声音' : '🔇 声音';
+}
+
+$('#sound-btn').addEventListener('click', () => {
+  const panel = $('#sound-panel');
+  panel.hidden = !panel.hidden;
+  renderSoundPanel();
+});
+$('#sound-panel').addEventListener('input', (e) => {
+  const key = e.target.dataset.pref;
+  if (!key) return;
+  setPref(key, e.target.type === 'checkbox' ? e.target.checked : Number(e.target.value));
+  renderSoundPanel();
+  if (key === 'sfx' && prefs.sfx) play('discard');
+});
+// 点面板外面就收起来
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#sound-panel, #sound-btn')) $('#sound-panel').hidden = true;
+});
+// 浏览器要求用户点过页面之后才能出声
+for (const type of ['pointerdown', 'keydown']) document.addEventListener(type, unlock);
+
 // ---------- 启动 ----------
 
 $('#name').value = load('mj-name') ?? '';
 renderVariantPicker();
 setHints(ui.hints);
+renderSoundPanel();
 document.body.dataset.mode = 'menu';
 setScreen('home');
 

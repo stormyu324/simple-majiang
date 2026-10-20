@@ -501,8 +501,9 @@ export class Engine {
           hand: open ? sortTiles(p.hand) : null,
           drawn: mine ? p.drawn : null,
           melds: p.melds.map((m) => ({ type: m.type, tiles: m.type === 'angang' && !mine && !end ? null : m.tiles })),
-          discards: p.discards,
-          specials: p.specials,
+          // 复制一份：画面和音效要拿新旧两次视图做比较，不能和牌局共用同一个数组
+          discards: [...p.discards],
+          specials: [...p.specials],
           que: choosing && !mine ? null : p.que,
           liang: p.liang,
           won: p.won ? { tile: p.won.tile, self: p.won.from === null } : null,

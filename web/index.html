@@ -15,10 +15,20 @@
       <button id="rules-btn" class="btn">📜 玩法规则</button>
       <button id="hints" class="btn" aria-pressed="false">提示：关</button>
       <button id="big-tiles" class="btn" aria-pressed="false">🔍 大牌</button>
+      <button id="sound-btn" class="btn" aria-controls="sound-panel">🔊 声音</button>
       <button id="restart" class="btn solo-only">重新开始</button>
       <button id="menu" class="btn game-only">返回菜单</button>
     </div>
   </header>
+
+  <div id="sound-panel" class="sound-panel" hidden>
+    <label><input type="checkbox" data-pref="sfx"> 音效（发牌、出牌、碰杠）</label>
+    <label><input type="checkbox" data-pref="voice"> 配音（报牌名、喊碰杠胡）</label>
+    <p class="voice-note muted small" hidden>这个浏览器没有中文语音，配音可能听不到或者是外语口音。</p>
+    <label><input type="checkbox" data-pref="music"> 背景音乐</label>
+    <label class="slider">总音量 <input type="range" min="0" max="1" step="0.05" data-pref="volume"></label>
+    <label class="slider">音乐音量 <input type="range" min="0" max="1" step="0.05" data-pref="musicVolume"></label>
+  </div>
 
   <!-- 菜单和等候室：开局前显示，开局后隐藏 -->
   <section id="lobby" class="lobby">
