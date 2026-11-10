@@ -4,7 +4,9 @@ import { isHonor, tileName } from '../src/tiles.js';
 
 const NUMS = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
 const HONORS = ['东', '南', '西', '北', '中', '发', '白'];
-const FONT = `font-family="'KaiTi','STKaiti','SimHei','Heiti SC','Microsoft YaHei',serif"`;
+// 粗体字再加一圈同色描边：楷体在很多电脑上没有真正的粗体，缩小后笔画会发虚
+const FONT = `font-family="'Songti SC','STSong','SimSun','Noto Serif SC','KaiTi',serif" font-weight="900"`;
+const bold = (color, w) => `fill="${color}" stroke="${color}" stroke-width="${w}" stroke-linejoin="round" paint-order="stroke"`;
 
 const RED = '#c4161c';
 const GREEN = '#0e6b2f';
@@ -53,7 +55,7 @@ function sticks(n) {
       `<line x1="10.5" y1="27" x2="19.5" y2="27" stroke="#fff" stroke-width="1"/>`;
   }
   const { r, at } = LAYOUTS[n - 1];
-  const w = Math.min(r * 1.05, 5.5);
+  const w = Math.min(r * 1.25, 6);
   const h = n <= 2 ? 15 : n <= 6 ? r * 2.1 : 9;
   return at.map(([cx, cy], i) => {
     const red = (n === 5 || n === 9) && i === Math.floor(n / 2);
@@ -63,8 +65,8 @@ function sticks(n) {
 
 function characters(n) {
   // 数字是辨认的关键，写得比"萬"还大
-  return `<text x="15" y="11" ${FONT} font-size="19" font-weight="900" fill="${INK}" text-anchor="middle" dominant-baseline="central">${NUMS[n - 1]}</text>` +
-    `<text x="15" y="30" ${FONT} font-size="15" font-weight="900" fill="${RED}" text-anchor="middle" dominant-baseline="central">萬</text>`;
+  return `<text x="15" y="11" ${FONT} font-size="18" ${bold(INK, 0.9)} text-anchor="middle" dominant-baseline="central">${NUMS[n - 1]}</text>` +
+    `<text x="15" y="30" ${FONT} font-size="16" ${bold(RED, 0.7)} text-anchor="middle" dominant-baseline="central">萬</text>`;
 }
 
 function honor(i) {
@@ -73,7 +75,7 @@ function honor(i) {
       `<rect x="9" y="10" width="12" height="20" rx="1" fill="none" stroke="${BLUE}" stroke-width="1.2"/>`;
   }
   const color = i === 4 ? RED : i === 5 ? GREEN : INK;
-  return `<text x="15" y="21" ${FONT} font-size="25" font-weight="900" fill="${color}" text-anchor="middle" dominant-baseline="central">${HONORS[i]}</text>`;
+  return `<text x="15" y="21" ${FONT} font-size="25" ${bold(color, 1.1)} text-anchor="middle" dominant-baseline="central">${HONORS[i]}</text>`;
 }
 
 function faceSVG(tile) {
